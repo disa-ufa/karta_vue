@@ -1,17 +1,24 @@
 <template>
   <div>
-    <!-- Левая панель -->
-    <LeftPanel :visibleLayers="visibleLayers" />
-
-    <!-- Карта -->
+    <LeftPanel
+      :visibleLayers="visibleLayers"
+      :ageGroups="ageGroups"
+      :accessibility="accessibility"
+      :allAgeGroups="allAgeGroups"
+      :allAccessibility="allAccessibility"
+      @update:ageGroups="val => { 
+        console.log('[YandexMap] parent set ageGroups:', val, ageGroups.value)
+        ageGroups.value = [...val];
+      }"
+      @update:accessibility="val => {
+        console.log('[YandexMap] parent set accessibility:', val, accessibility.value)
+        accessibility.value = [...val];
+      }"
+    />
     <div id="map" ref="mapRef" style="width: 100vw; height: 100vh; position: relative;"></div>
-
-    <!-- Sidebar справа -->
     <transition name="sidebar">
       <SidebarCard v-if="selectedOrg" :org="selectedOrg" @close="selectedOrg = null" />
     </transition>
-
-    <!-- Preview-карточка при наведении -->
     <div
       v-if="hoveredOrg"
       :style="previewCardStyle"
@@ -19,9 +26,7 @@
       @mouseenter="isPreviewHovered = true"
       @mouseleave="handlePreviewLeave"
     >
-      <div>
-        <b>{{ hoveredOrg.name }}</b>
-      </div>
+      <div><b>{{ hoveredOrg.name }}</b></div>
       <div>Адрес: {{ hoveredOrg.address }}</div>
       <div>Телефон: {{ hoveredOrg.phone }}</div>
       <div>
@@ -35,15 +40,20 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch, computed } from 'vue'
+import { ref, reactive, onMounted, watch, computed, nextTick } from 'vue'
 import LeftPanel from './LeftPanel.vue'
 import SidebarCard from './SidebarCard.vue'
 
-// === Цвета меток для каждого слоя ===
+const allAgeGroups = ['0-18', '18+', 'СВО']
+const allAccessibility = ['Да', 'Нет']
+
+const ageGroups = ref([...allAgeGroups])
+const accessibility = ref([...allAccessibility])
+
 const layerPresets = {
-  layer1: 'islands#redIcon',    // например, красный
-  layer2: 'islands#blueIcon',   // синий
-  layer3: 'islands#greenIcon'   // зелёный
+  layer1: 'islands#redIcon',
+  layer2: 'islands#blueIcon',
+  layer3: 'islands#greenIcon'
 }
 
 const mapRef = ref(null)
@@ -67,11 +77,82 @@ const layerFiles = {
 
 let mapInstance = null
 
+function filterFeature(obj) {
+  // --- DIAGNOSTICS ---
+  console.log('[YandexMap] filterFeature called:', {
+    obj,
+    ageGroups: ageGroups.value,
+    accessibility: accessibility.value
+  })
+  // Сравниваем доступность и возрастную группу
+  const accVal = (obj.properties.accessibility || '').toLowerCase()
+  const ageVal = (obj.properties.age_group || '').toLowerCase()
+  console.log('[YandexMap] compare acc: object acc=', obj.properties.accessibility, 'vs filter=', accessibility.value)
+  console.log('[YandexMap] compare age_group: object age_group=', obj.properties.age_group, 'vs filter=', ageGroups.value)
+  let ageOk = true, accOk = true
+  if (ageGroups.value.length > 0) {
+    ageOk = ageGroups.value.some(group =>
+      ageVal.includes(group.toLowerCase())
+    )
+  }
+  if (accessibility.value.length > 0) {
+    accOk = accessibility.value.some(val =>
+      accVal === val.toLowerCase()
+    )
+  }
+  // Итог для этого объекта:
+  console.log('[YandexMap] -> result: ageOk=' + ageOk + ', accOk=' + accOk + ', name=' + obj.properties.name)
+  return ageOk && accOk
+}
+
+// Главное: каждый раз новая функция!
+function applyFiltersToAllLayers() {
+  for (const layerId in objectManagers) {
+    const manager = objectManagers[layerId]
+    if (
+      manager &&
+      manager.objects &&
+      typeof manager.objects.getLength === 'function' &&
+      manager.objects.getLength() > 0
+    ) {
+      // каждый раз новая функция!
+      manager.setFilter(obj => filterFeature(obj))
+      console.log(`[YandexMap] [${layerId}] setFilter in applyFiltersToAllLayers`)
+    } else {
+      console.log(`[YandexMap] [${layerId}] ObjectManager пуст или не готов`)
+    }
+  }
+}
+
+function addLayerWithFilter(layerId) {
+  if (objectManagers[layerId]) {
+    objectManagers[layerId].setFilter(obj => filterFeature(obj))
+    mapInstance.geoObjects.add(objectManagers[layerId])
+    console.log(`[YandexMap] addLayerWithFilter: ${layerId} (setFilter + add)`)
+  }
+}
+
+function removeLayer(layerId) {
+  if (objectManagers[layerId]) {
+    mapInstance.geoObjects.remove(objectManagers[layerId])
+    console.log(`[YandexMap] removeLayer: ${layerId}`)
+  }
+}
+
+watch([ageGroups, accessibility], () => {
+  console.log('[YandexMap] watch on ageGroups or accessibility fired')
+  applyFiltersToAllLayers()
+}, { deep: true })
+
 onMounted(() => {
   const script = document.createElement('script')
-  script.src = 'https://api-maps.yandex.ru/2.1/?apikey=ВАШ_API_КЛЮЧ&lang=ru_RU'
+  script.src = 'https://api-maps.yandex.ru/2.1/?apikey=9dda63a0-a400-4fa1-bed5-024c6ad2056d&lang=ru_RU'
   script.onload = initMap
   document.head.appendChild(script)
+  // DIAG: refs
+  setTimeout(() => {
+    console.log('[YandexMap] refs in setup:', ageGroups, accessibility)
+  }, 2000)
 })
 
 function handlePreviewLeave() {
@@ -104,7 +185,13 @@ function closePreviewCard() {
 }
 
 function initMap() {
-  window.ymaps.ready(() => {
+  window.ymaps.ready(async () => {
+    await nextTick()
+    if (!mapRef.value) {
+      console.error('mapRef еще не готов!')
+      return
+    }
+
     mapInstance = new window.ymaps.Map(mapRef.value, {
       center: [54.7, 56.0],
       zoom: 9
@@ -117,10 +204,9 @@ function initMap() {
         .then(r => r.json())
         .then(data => {
           objectManagers[layerId].add(data)
-
-          // === ВАЖНО: назначаем цвет меток для этого слоя! ===
+          objectManagers[layerId].setFilter(obj => filterFeature(obj))
+          console.log(`[YandexMap] ObjectManager loaded and filter applied: ${layerId} features:`, data.features.length)
           objectManagers[layerId].objects.options.set('preset', layerPresets[layerId])
-
           objectManagers[layerId].objects.options.set('hasBalloon', false)
           objectManagers[layerId].objects.options.set('openBalloonOnClick', false)
           objectManagers[layerId].objects.options.set('hasHint', false)
@@ -130,7 +216,6 @@ function initMap() {
             const geoObject = objectManagers[layerId].objects.getById(objectId)
             const props = geoObject.properties
             const coords = geoObject.geometry.coordinates
-
             const pixel = mapInstance.options.get('projection').toGlobalPixels(coords, mapInstance.getZoom())
             const mapPx = mapInstance.converter.globalToPage(pixel)
             openPreviewCard(props, { x: mapPx[0], y: mapPx[1] })
@@ -166,17 +251,16 @@ function initMap() {
           })
 
           if (visibleLayers[layerId]) {
-            mapInstance.geoObjects.add(objectManagers[layerId])
+            addLayerWithFilter(layerId)
           }
         })
     }
 
     watch(visibleLayers, (newValues) => {
       for (const id in newValues) {
+        removeLayer(id)
         if (newValues[id]) {
-          mapInstance.geoObjects.add(objectManagers[id])
-        } else {
-          mapInstance.geoObjects.remove(objectManagers[id])
+          addLayerWithFilter(id)
         }
       }
     }, { deep: true })
