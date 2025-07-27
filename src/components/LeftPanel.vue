@@ -1,12 +1,20 @@
 <script setup>
 import { ref, watch, computed } from 'vue'
+import AuthModal from './AuthModal.vue'
+
+const MINISTRIES = [
+  'Министерство просвещения Р.Б.',
+  'Министерство спорта Р.Б.',
+  'Министерство культуры Р.Б.',
+  'Министерство здравоохранения Р.Б.',
+  'Министерство труда и социальной защиты Р.Б.'
+]
 
 const props = defineProps({
   visibleLayers: { type: Object, required: true },
   ageGroups: { type: [Array, Object], default: () => [] },
   accessibility: { type: [Array, Object], default: () => [] },
   allAgeGroups: { type: Array, required: true },
-  // Новый пропс:
   allOrganizations: { type: Array, default: () => [] }
 })
 
@@ -20,6 +28,42 @@ const emit = defineEmits([
 const localAgeGroups = ref([...props.ageGroups])
 const localAccessibilityEnabled = ref(props.accessibility.includes('Да'))
 
+// --- AUTH MODAL ---
+const showAuthModal = ref(false)
+const isLoginTab = ref(true)
+const authError = ref('')
+const authLoading = ref(false)
+
+function openAuth() {
+  showAuthModal.value = true
+  isLoginTab.value = true
+}
+function closeAuth() {
+  showAuthModal.value = false
+  authError.value = ''
+}
+function handleLogin({ email, password }) {
+  authLoading.value = true
+  // TODO: логика авторизации (через API)
+  setTimeout(() => {
+    authLoading.value = false
+    showAuthModal.value = false
+  }, 900)
+}
+function handleRegister({ email, password, name, ministry }) {
+  authLoading.value = true
+  // TODO: логика регистрации (через API)
+  setTimeout(() => {
+    authLoading.value = false
+    showAuthModal.value = false
+  }, 1200)
+}
+function switchAuthTab(val) {
+  isLoginTab.value = val
+  authError.value = ''
+}
+
+// --- SEARCH ---
 const searchInput = ref('')
 const showDropdown = ref(false)
 const searchResults = computed(() => {
@@ -29,9 +73,29 @@ const searchResults = computed(() => {
     org =>
       (org.name || '').toLowerCase().includes(query) ||
       (org.address || '').toLowerCase().includes(query)
-  ).slice(0, 10)
+  ).slice(0, 12)
 })
 
+function handleSearchInput(e) {
+  searchInput.value = e.target.value
+  emit('search', searchInput.value)
+  showDropdown.value = !!searchInput.value.trim()
+}
+function clearSearch() {
+  searchInput.value = ''
+  emit('search', '')
+  showDropdown.value = false
+}
+function onFocusSearch() {
+  if (searchInput.value.trim()) showDropdown.value = true
+}
+function selectOrgFromDropdown(org) {
+  emit('selectOrg', org)
+  showDropdown.value = false
+  searchInput.value = org.name
+}
+
+// --- FILTERS ---
 const hasChanges = computed(() => {
   const originalAge = [...props.ageGroups].sort().join(',')
   const localAge = [...localAgeGroups.value].sort().join(',')
@@ -60,11 +124,9 @@ function toggleLocalAgeGroup(val) {
     localAgeGroups.value = arr
   }
 }
-
 function toggleAccessibility() {
   localAccessibilityEnabled.value = !localAccessibilityEnabled.value
 }
-
 function applyFilters() {
   if (localAgeGroups.value.length === 0) {
     localAgeGroups.value = [...props.allAgeGroups]
@@ -72,46 +134,25 @@ function applyFilters() {
   emit('update:ageGroups', localAgeGroups.value)
   emit('update:accessibility', localAccessibilityEnabled.value ? ['Да'] : [])
 }
-
 function cancelFilters() {
   localAgeGroups.value = [...props.ageGroups]
   localAccessibilityEnabled.value = props.accessibility.includes('Да')
 }
-
 function resetFilters() {
   localAgeGroups.value = [...props.allAgeGroups]
   localAccessibilityEnabled.value = false
   applyFilters()
-}
-
-// Поиск
-function handleSearchInput(e) {
-  searchInput.value = e.target.value
-  emit('search', searchInput.value)
-  showDropdown.value = !!searchInput.value.trim()
-}
-
-function clearSearch() {
-  searchInput.value = ''
-  emit('search', '')
-  showDropdown.value = false
-}
-
-function onFocusSearch() {
-  if (searchInput.value.trim()) showDropdown.value = true
-}
-
-function selectOrgFromDropdown(org) {
-  emit('selectOrg', org)
-  showDropdown.value = false
-  searchInput.value = org.name
 }
 </script>
 
 <template>
   <div class="panel">
 
-    <!-- ПОИСК -->
+    <!-- Вход/Регистрация -->
+    <button class="reset-btn auth-link" @click="openAuth">Вход / Регистрация</button>
+    
+
+    <!-- Поиск -->
     <div class="search-bar" @click.stop>
       <span class="search-icon">&#128269;</span>
       <input
@@ -188,6 +229,19 @@ function selectOrgFromDropdown(org) {
       </button>
       <button class="btn-cancel" @click="cancelFilters">Отмена</button>
     </div>
+
+    <!-- Модальное окно авторизации -->
+    <AuthModal
+      :show="showAuthModal"
+      :isLogin="isLoginTab"
+      :ministries="MINISTRIES"
+      :loading="authLoading"
+      :error="authError"
+      @close="closeAuth"
+      @login="handleLogin"
+      @register="handleRegister"
+      @switchTab="switchAuthTab"
+    />
   </div>
 </template>
 
@@ -206,6 +260,24 @@ function selectOrgFromDropdown(org) {
   border: 1px solid #e5e5e5;
 }
 
+.auth-link {
+  font-size: 14px;
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  transition: color 0.18s;
+  margin-bottom: 18px;
+  padding: 0;
+  /* float: right; <-- убрать эту строку */
+  text-align: left;
+  display: block; /* для корректного выравнивания на всю ширину */
+}
+
+.auth-link:hover {
+  color: #36c900;
+  text-decoration: underline;
+}
 .search-bar {
   display: flex;
   align-items: center;
@@ -215,14 +287,8 @@ function selectOrgFromDropdown(org) {
   margin-bottom: 16px;
   height: 44px;
   box-shadow: 0 2px 8px 0 #24252912;
+  position: relative;
 }
-
-.search-bar .icon {
-  display: flex;
-  align-items: center;
-  margin-right: 8px;
-}
-
 .search-bar .search-input {
   border: none;
   outline: none;
@@ -232,19 +298,26 @@ function selectOrgFromDropdown(org) {
   height: 40px;
   padding-left: 0;
 }
-
+.search-icon { font-size: 18px; color: #c4c4c4; margin-right: 5px; }
+.search-clear { cursor: pointer; font-size: 18px; color: #bbb; margin-left: 3px; }
+.search-clear:hover { color: #ff3b3b; }
+.search-dropdown {
+  position: absolute; left: 0; top: 44px; background: #fff; border-radius: 13px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.09); width: 100%; z-index: 30;
+  max-height: 520px; overflow-y: auto;
+}
+.search-item { padding: 9px 14px; cursor: pointer; border-bottom: 1px solid #f1f1f1; }
+.search-item:last-child { border-bottom: none; }
+.search-item:hover { background: #f4f9fd; }
+.search-item-title { font-weight: 500; display: block; color: #222; font-size: 15px; }
+.search-item-address { display: block; font-size: 13px; color: #888; }
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 14px;
 }
-
-.panel-title {
-  font-weight: 600;
-  font-size: 18px;
-}
-
+.panel-title { font-weight: 600; font-size: 18px; }
 .reset-btn {
   font-size: 14px;
   background: none;
@@ -255,36 +328,11 @@ function selectOrgFromDropdown(org) {
   margin-left: 8px;
   padding: 0;
 }
-
-.reset-btn:hover {
-  color: #36c900;
-  text-decoration: underline;
-}
-
-.section-title {
-  font-weight: 500;
-  font-size: 15px;
-  margin-bottom: 4px;
-}
-
-.checkbox-row {
-  display: block;
-  margin-bottom: 3px;
-  font-size: 15px;
-}
-
-.age-checkbox-row {
-  display: flex;
-  gap: 16px;
-}
-
-.checkbox-inline {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 15px;
-}
-
+.reset-btn:hover { color: #36c900; text-decoration: underline; }
+.section-title { font-weight: 500; font-size: 15px; margin-bottom: 4px; }
+.checkbox-row { display: block; margin-bottom: 3px; font-size: 15px; }
+.age-checkbox-row { display: flex; gap: 16px; }
+.checkbox-inline { display: flex; align-items: center; gap: 5px; font-size: 15px; }
 .accessibility-btn {
   border: 1.5px solid #a1aeb8;
   border-radius: 8px;
@@ -303,13 +351,11 @@ function selectOrgFromDropdown(org) {
   border-color: #36c900;
   font-weight: bold;
 }
-
 .panel-divider {
   border: none;
   border-top: 1px solid #eaeaea;
   margin: 12px 0;
 }
-
 .actions {
   margin-top: 16px;
   display: flex;
@@ -338,21 +384,5 @@ function selectOrgFromDropdown(org) {
   background: none;
   color: #3d64ff;
 }
-.btn-cancel:hover {
-  text-decoration: underline;
-}
-
-.panel { position: absolute; top: 20px; left: 20px; width: 320px; background: #fff; border-radius: 16px; box-shadow: 0 4px 24px 0 rgba(51, 61, 81, 0.07); padding: 22px 20px 20px 20px; font-family: 'Segoe UI', 'Arial', sans-serif; z-index: 20; border: 1px solid #e5e5e5; }
-.search-bar { display: flex; align-items: center; position: relative; margin-bottom: 14px; background: #f5f6fa; border-radius: 14px; padding: 4px 12px; }
-.search-input { border: none; outline: none; font-size: 16px; padding: 8px 8px 8px 0; background: transparent; width: 100%; }
-.search-icon { font-size: 18px; color: #c4c4c4; margin-right: 5px; }
-.search-clear { cursor: pointer; font-size: 18px; color: #bbb; margin-left: 3px; }
-.search-clear:hover { color: #ff3b3b; }
-.search-dropdown { position: absolute; left: 0; top: 44px; background: #fff; border-radius: 13px; box-shadow: 0 2px 12px rgba(0,0,0,0.09); width: 100%; z-index: 30; max-height: 480px; overflow-y: auto; }
-.search-item { padding: 9px 14px; cursor: pointer; border-bottom: 1px solid #f1f1f1; }
-.search-item:last-child { border-bottom: none; }
-.search-item:hover { background: #f4f9fd; }
-.search-item-title { font-weight: 500; display: block; color: #222; font-size: 15px; }
-.search-item-address { display: block; font-size: 13px; color: #888; }
+.btn-cancel:hover { text-decoration: underline; }
 </style>
-ц
