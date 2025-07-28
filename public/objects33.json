@@ -1,0 +1,149 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": 1,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          54.826183,
+          56.057129
+        ]
+      },
+      "properties": {
+        "name": "ГБУ ДО СШ \"ЦАС\" РБ",
+        "address": "450112 , г. Уфа, ул. Комарова, 9",
+        "website": "http://adaptiv-rb.ru/",
+        "phone": "8-937-784-89-12",
+        "rehab_form": "Дневной стационар",
+        "age_group": "0-18\n18+\nСВО",
+        "accessibility": "Да",
+        "profile": "Лица с нарушениями слуха\nЛица с поражением ОДА\nЛица с нарушениями зрения\nЛица с ИН",
+        "services": "ГБУ ДО СШ \"ЦАС\" РБ",
+        "specialists": "Тренер-преподаватель\nИнструктор-методист\nПедагог-психолог",
+        "description": "Лица с нарушениями слуха\nЛица с поражением ОДА\nЛица с нарушениями зрения\nЛица с ИН\nГБУ ДО СШ \"ЦАС\" РБ"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 2,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          53.357835,
+          55.922255
+        ]
+      },
+      "properties": {
+        "name": "ГБУ ДО СШ \"ЦАС\" РБ",
+        "address": "453261, г. Салават, ул. Ленина, д. 11А",
+        "website": "http://adaptiv-rb.ru/",
+        "phone": "8-937-784-89-12",
+        "rehab_form": "Дневной стационар",
+        "age_group": "0-18\n18+\nСВО",
+        "accessibility": "Да",
+        "profile": "Лица с поражением ОДА",
+        "services": "ГБУ ДО СШ \"ЦАС\" РБ",
+        "specialists": "Тренер-преподаватель",
+        "description": "Лица с поражением ОДА\nГБУ ДО СШ \"ЦАС\" РБ"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 3,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          54.102464,
+          54.099726
+        ]
+      },
+      "properties": {
+        "name": "ГБУ ДО СШ \"ЦАС\" РБ",
+        "address": "452005, г. Белебей, ул. им М.Г. Амирова, д.10",
+        "website": "http://adaptiv-rb.ru/",
+        "phone": "8-937-784-89-12",
+        "rehab_form": "Дневной стационар",
+        "age_group": "0-18\n18+\nСВО",
+        "accessibility": "Да",
+        "profile": "Лица с нарушениями слуха\nЛица с поражением ОДА\nЛица с нарушениями зрения",
+        "services": "ГБУ ДО СШ \"ЦАС\" РБ",
+        "specialists": "Тренер-преподаватель",
+        "description": "Лица с нарушениями слуха\nЛица с поражением ОДА\nЛица с нарушениями зрения\nГБУ ДО СШ \"ЦАС\" РБ"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 4,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          52.967372,
+          55.932936
+        ]
+      },
+      "properties": {
+        "name": "ГБУ ДО СШ \"ЦАС\" РБ",
+        "address": "453856, г. Мелеуз, ул. Первомайская, д.1",
+        "website": "http://adaptiv-rb.ru/",
+        "phone": "8-937-784-89-12",
+        "rehab_form": "Дневной стационар",
+        "age_group": "0-18\n18+\nСВО",
+        "accessibility": "Да",
+        "profile": "Лица с поражением ОДА",
+        "services": "ГБУ ДО СШ \"ЦАС\" РБ",
+        "specialists": "Тренер-преподаватель",
+        "description": "Лица с поражением ОДА\nГБУ ДО СШ \"ЦАС\" РБ"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 5,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          52.753094,
+          55.806759
+        ]
+      },
+      "properties": {
+        "name": "ГБУ ДО СШ \"ЦАС\" РБ",
+        "address": "453301, г. Кумертау, ул. Первомайская, влд. 3а",
+        "website": "http://adaptiv-rb.ru/",
+        "phone": "8-937-784-89-12",
+        "rehab_form": "Дневной стационар",
+        "age_group": "0-18\n18+\nСВО",
+        "accessibility": "Да",
+        "profile": "Лица с поражением ОДА\nЛица с ИН",
+        "services": "ГБУ ДО СШ \"ЦАС\" РБ",
+        "specialists": "Тренер-преподаватель",
+        "description": "Лица с поражением ОДА\nЛица с ИН\nГБУ ДО СШ \"ЦАС\" РБ"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": 6,
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          53.626857,
+          55.929568
+        ]
+      },
+      "properties": {
+        "name": "ГБУ ДО СШ \"ЦАС\" РБ",
+        "address": "453120, г. Стерлитамак, ул. Льва Толстого, д.7",
+        "website": "http://adaptiv-rb.ru/",
+        "phone": "8-937-784-89-12",
+        "rehab_form": "Дневной стационар",
+        "age_group": "0-18\n18+\nСВО",
+        "accessibility": "Да",
+        "profile": "Лица с нарушениями слуха",
+        "services": "ГБУ ДО СШ \"ЦАС\" РБ",
+        "specialists": "Тренер-преподаватель",
+        "description": "Лица с нарушениями слуха\nГБУ ДО СШ \"ЦАС\" РБ"
+      }
+    }
+  ]
+}
