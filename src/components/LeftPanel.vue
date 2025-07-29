@@ -2,19 +2,36 @@
 import { ref, watch, computed } from 'vue'
 import AuthModal from './AuthModal.vue'
 
+<<<<<<< HEAD
+=======
+const MINISTRIES = [
+  'Министерство просвещения Р.Б.',
+  'Министерство спорта Р.Б.',
+  'Министерство культуры Р.Б.',
+  'Министерство здравоохранения Р.Б.',
+  'Министерство труда и социальной защиты Р.Б.'
+]
+
+>>>>>>> c82fb0a886eafbe5986eb3620d2aad8ed9f56fcd
 const props = defineProps({
   visibleLayers: { type: Object, required: false, default: () => ({}) },
   ageGroups: { type: [Array, Object], default: () => [] },
   accessibility: { type: [Array, Object], default: () => [] },
+<<<<<<< HEAD
   allAgeGroups: { type: Array, default: () => [] },
   allOrganizations: { type: Array, default: () => [] },
   ministries: { type: Array, default: () => [] }, // <- теперь как prop
+=======
+  allAgeGroups: { type: Array, required: true },
+  allOrganizations: { type: Array, default: () => [] }
+>>>>>>> c82fb0a886eafbe5986eb3620d2aad8ed9f56fcd
 })
 
 const emit = defineEmits([
   'update:ageGroups',
   'update:accessibility',
   'search',
+<<<<<<< HEAD
   'selectOrg',
   'open-auth'
 ])
@@ -31,19 +48,57 @@ const localAgeGroups = ref([...props.ageGroups])
 const localAccessibilityEnabled = ref(props.accessibility.includes('Да'))
 
 // --- AUTH MODAL (если хочешь, можно убрать этот AuthModal и оставить только открытие из App.vue)
+=======
+  'selectOrg'
+])
+
+const localAgeGroups = ref([...props.ageGroups])
+const localAccessibilityEnabled = ref(props.accessibility.includes('Да'))
+
+// --- AUTH MODAL ---
+>>>>>>> c82fb0a886eafbe5986eb3620d2aad8ed9f56fcd
 const showAuthModal = ref(false)
 const isLoginTab = ref(true)
 const authError = ref('')
 const authLoading = ref(false)
 
 function openAuth() {
+<<<<<<< HEAD
   emit('open-auth') // теперь только эмитим вверх!
 }
 
+=======
+  showAuthModal.value = true
+  isLoginTab.value = true
+}
+>>>>>>> c82fb0a886eafbe5986eb3620d2aad8ed9f56fcd
 function closeAuth() {
   showAuthModal.value = false
   authError.value = ''
 }
+<<<<<<< HEAD
+=======
+function handleLogin({ email, password }) {
+  authLoading.value = true
+  // TODO: логика авторизации (через API)
+  setTimeout(() => {
+    authLoading.value = false
+    showAuthModal.value = false
+  }, 900)
+}
+function handleRegister({ email, password, name, ministry }) {
+  authLoading.value = true
+  // TODO: логика регистрации (через API)
+  setTimeout(() => {
+    authLoading.value = false
+    showAuthModal.value = false
+  }, 1200)
+}
+function switchAuthTab(val) {
+  isLoginTab.value = val
+  authError.value = ''
+}
+>>>>>>> c82fb0a886eafbe5986eb3620d2aad8ed9f56fcd
 
 // --- SEARCH ---
 const searchInput = ref('')
@@ -167,7 +222,13 @@ function resetFilters() {
       <div class="section-title">Ведомства</div>
       <label v-for="key in Object.keys(visibleLayers)" :key="key" class="checkbox-row">
         <input type="checkbox" v-model="visibleLayers[key]"/>
+<<<<<<< HEAD
         {{ LAYER_LABELS[key] || key }}
+=======
+        {{ key === 'layer1' ? 'Министерство просвещения Р.Б.'
+            : key === 'layer2' ? 'Министерство спорта Р.Б.'
+            : 'Министерство культуры Р.Б.' }}
+>>>>>>> c82fb0a886eafbe5986eb3620d2aad8ed9f56fcd
       </label>
     </div>
     <hr class="panel-divider"/>
@@ -186,6 +247,30 @@ function resetFilters() {
           {{ val }}
         </label>
       </div>
+<<<<<<< HEAD
+    </div>
+    <div class="panel-section">
+      <div class="section-title">Доступная среда</div>
+      <button
+        @click="toggleAccessibility"
+        :class="['accessibility-btn', { selected: localAccessibilityEnabled }]"
+        type="button"
+      >
+        Да
+      </button>
+    </div>
+    <div class="actions">
+      <button
+        class="btn-apply"
+        :class="{ disabled: !hasChanges }"
+        :disabled="!hasChanges"
+        @click="applyFilters"
+      >
+        Применить
+      </button>
+      <button class="btn-cancel" @click="cancelFilters">Отмена</button>
+=======
+>>>>>>> c82fb0a886eafbe5986eb3620d2aad8ed9f56fcd
     </div>
     <div class="panel-section">
       <div class="section-title">Доступная среда</div>
@@ -208,6 +293,19 @@ function resetFilters() {
       </button>
       <button class="btn-cancel" @click="cancelFilters">Отмена</button>
     </div>
+
+    <!-- Модальное окно авторизации -->
+    <AuthModal
+      :show="showAuthModal"
+      :isLogin="isLoginTab"
+      :ministries="MINISTRIES"
+      :loading="authLoading"
+      :error="authError"
+      @close="closeAuth"
+      @login="handleLogin"
+      @register="handleRegister"
+      @switchTab="switchAuthTab"
+    />
   </div>
 </template>
 
