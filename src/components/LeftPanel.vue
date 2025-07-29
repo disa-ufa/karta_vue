@@ -2,13 +2,22 @@
 import { ref, watch, computed } from 'vue'
 import AuthModal from './AuthModal.vue'
 
-const MINISTRIES = [
-  'Министерство просвещения Р.Б.',
-  'Министерство спорта Р.Б.',
-  'Министерство культуры Р.Б.',
-  'Министерство здравоохранения Р.Б.',
-  'Министерство труда и социальной защиты Р.Б.'
-]
+const props = defineProps({
+  visibleLayers: { type: Object, required: false, default: () => ({}) },
+  ageGroups: { type: [Array, Object], default: () => [] },
+  accessibility: { type: [Array, Object], default: () => [] },
+  allAgeGroups: { type: Array, default: () => [] },
+  allOrganizations: { type: Array, default: () => [] },
+  ministries: { type: Array, default: () => [] }, // <- теперь как prop
+})
+
+const emit = defineEmits([
+  'update:ageGroups',
+  'update:accessibility',
+  'search',
+  'selectOrg',
+  'open-auth'
+])
 
 const LAYER_LABELS = {
   layer1: 'Министерство просвещения Р.Б.',
@@ -18,54 +27,21 @@ const LAYER_LABELS = {
   layer5: 'Министерство труда и социальной защиты Р.Б.'
 }
 
-const props = defineProps({
-  visibleLayers: { type: Object, required: true },
-  ageGroups: { type: [Array, Object], default: () => [] },
-  accessibility: { type: [Array, Object], default: () => [] },
-  allAgeGroups: { type: Array, required: true },
-  allOrganizations: { type: Array, default: () => [] }
-})
-
-const emit = defineEmits([
-  'update:ageGroups',
-  'update:accessibility',
-  'search',
-  'selectOrg'
-])
-
 const localAgeGroups = ref([...props.ageGroups])
 const localAccessibilityEnabled = ref(props.accessibility.includes('Да'))
 
-// --- AUTH MODAL ---
+// --- AUTH MODAL (если хочешь, можно убрать этот AuthModal и оставить только открытие из App.vue)
 const showAuthModal = ref(false)
 const isLoginTab = ref(true)
 const authError = ref('')
 const authLoading = ref(false)
 
 function openAuth() {
-  showAuthModal.value = true
-  isLoginTab.value = true
+  emit('open-auth') // теперь только эмитим вверх!
 }
+
 function closeAuth() {
   showAuthModal.value = false
-  authError.value = ''
-}
-function handleLogin({ email, password }) {
-  authLoading.value = true
-  setTimeout(() => {
-    authLoading.value = false
-    showAuthModal.value = false
-  }, 900)
-}
-function handleRegister({ email, password, name, ministry }) {
-  authLoading.value = true
-  setTimeout(() => {
-    authLoading.value = false
-    showAuthModal.value = false
-  }, 1200)
-}
-function switchAuthTab(val) {
-  isLoginTab.value = val
   authError.value = ''
 }
 
@@ -157,7 +133,6 @@ function resetFilters() {
     <!-- Вход/Регистрация -->
     <button class="reset-btn auth-link" @click="openAuth">Вход / Регистрация</button>
     
-
     <!-- Поиск -->
     <div class="search-bar" @click.stop>
       <span class="search-icon">&#128269;</span>
@@ -233,21 +208,10 @@ function resetFilters() {
       </button>
       <button class="btn-cancel" @click="cancelFilters">Отмена</button>
     </div>
-
-    <!-- Модальное окно авторизации -->
-    <AuthModal
-      :show="showAuthModal"
-      :isLogin="isLoginTab"
-      :ministries="MINISTRIES"
-      :loading="authLoading"
-      :error="authError"
-      @close="closeAuth"
-      @login="handleLogin"
-      @register="handleRegister"
-      @switchTab="switchAuthTab"
-    />
   </div>
 </template>
+
+
 
 
 

@@ -9,6 +9,7 @@
       @update:ageGroups="val => ageGroups.splice(0, ageGroups.length, ...val)"
       @update:accessibility="val => accessibility.splice(0, accessibility.length, ...val)"
       @selectOrg="handleSelectOrganization"
+      @open-auth="emit('open-auth')"
     />
     <div id="map" ref="mapRef" style="width: 100vw; height: 100vh; position: relative;"></div>
     <transition name="sidebar">
@@ -38,6 +39,8 @@
 import { ref, reactive, onMounted, watch, computed, nextTick } from 'vue'
 import LeftPanel from './LeftPanel.vue'
 import SidebarCard from './SidebarCard.vue'
+
+const emit = defineEmits(['open-auth'])
 
 const allAgeGroups = ['0-18', '18+', 'СВО']
 const allAccessibility = ['Да', 'Нет']
@@ -257,11 +260,7 @@ onMounted(() => {
 })
 </script>
 
-
-
-
 <style scoped>
-/* Стили для панели фильтров */
 .LeftPanel {
   background: #fff;
   padding: 16px;
